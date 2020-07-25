@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene>
+      {% for entity in entities %}
+      {{ entity.entity_string }}
+      {% endfor %}
+      <a-entity camera look-controls wasd-controls="acceleration:100; fly:true"
+                position="{{ position[0] }} {{ position[1] }} {{ position[2] }}"
+                rotation="{{ rotation[0] }} {{ rotation[1] }} {{ rotation[2] }}"></a-entity>
+      <a-sky color="#ECECEC"></a-sky>
+    </a-scene>
+  </body>
+</html>
