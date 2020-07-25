@@ -1,3 +1,4 @@
+from typing import Union
 from math import ceil, floor
 
 from vrplot.basic_objects import Figure, Line, DEFAULT_COLOR
@@ -6,16 +7,19 @@ from vrplot.grid import create_grid
 
 import pandas as pd
 
+from vrplot.types import Column, Color
+
 
 def line3d(
         df: pd.DataFrame,
-        x: str,
-        y: str,
-        z: str,
+        *,
+        x: Column,
+        y: Column,
+        z: Column,
+        color: Union[Column, Color] = DEFAULT_COLOR,
         grid: bool = True,
-        size_multiplier: float = 1.,
-        color: str = DEFAULT_COLOR
-    ) -> Figure:
+        size_multiplier: float = 1.
+) -> Figure:
 
     # Grab columns and handle exceptions
     X = check_pandas_column_exist(df, x)
@@ -23,11 +27,16 @@ def line3d(
     Z = check_pandas_column_exist(df, z)
     N = len(X)
 
-    entities = [Line(x_range=(x0_*size_multiplier, x1_*size_multiplier),
-                     y_range=(y0_*size_multiplier, y1_*size_multiplier),
-                     z_range=(z0_*size_multiplier, z1_*size_multiplier),
-                     color=color)
-                for x0_, y0_, z0_, x1_, y1_, z1_ in zip(X, Y, Z, X[1:], Y[1:], Z[1:])]
+    # Create our lines as each point connected to each next point
+    entities = [
+        Line(
+            x_range=(X[i]*size_multiplier, X[i+1]*size_multiplier),
+            y_range=(Y[i]*size_multiplier, Y[i+1]*size_multiplier),
+            z_range=(Z[i]*size_multiplier, Z[i+1]*size_multiplier),
+            color=color
+        )
+        for i in range(N-1)
+    ]
 
     # Create the Grid
     out = Figure(entities=entities)

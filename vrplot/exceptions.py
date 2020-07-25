@@ -1,8 +1,14 @@
 import pandas as pd
+import numpy as np
 
 
-class PointSizeException(Exception):
-    """ Indicates that a point size is not valid (usually means cant be zero). """
+class PositiveException(Exception):
+    """ Indicates that a value should not be less than or equal to zero. """
+    pass
+
+
+class NonZeroException(Exception):
+    """ Indicates that a value should not be zero. """
     pass
 
 
@@ -34,7 +40,7 @@ class PandasColumnDoesNotExistException(Exception):
 def check_pandas_column_exist(
         df: pd.DataFrame,
         col: str
-    ) -> pd.Series:
+    ) -> np.ndarray:
     """
     Checks that a given column exists in a given pandas DataFrame.
 
@@ -44,4 +50,4 @@ def check_pandas_column_exist(
     """
     if col not in df:
         raise PandasColumnDoesNotExistException(f"Column {col} does not exist in given pandas DataFrame.")
-    return df[col]
+    return df[col].values

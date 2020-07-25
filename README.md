@@ -9,7 +9,10 @@ visualizations directly in [WebVR](https://webvr.info/)! It works with any web b
 I'm livestreaming on [Twitch](https://www.twitch.tv/noblesseoblige22)
 
 # Contribution
+
 Please Contribute!!!
  
 # Examples
-[Archimedean Spiral](examples/archimedeanspiral.html)
+
+* [Archimedean Spiral](examples/output/archimedeanspiral.html)
+* [Double Ramp](examples/output/doubleramp.html)

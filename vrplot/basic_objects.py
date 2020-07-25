@@ -6,7 +6,7 @@ import tempfile
 
 from jinja2 import Environment, PackageLoader, select_autoescape, FileSystemLoader
 
-from vrplot.exceptions import check_color, PointSizeException
+from vrplot.exceptions import check_color, PositiveException, NonZeroException
 
 DEFAULT_COLOR = "#FF0000"
 
@@ -36,8 +36,8 @@ class Point(Entity):
             radius: float = 0.1,
             color: str = DEFAULT_COLOR
     ):
-        if radius == 0.:
-            raise PointSizeException("Radius can not be zero.")
+        if radius <= 0.:
+            raise PositiveException(f"Radius can not be less than or equal to zero. Got {radius}.")
         super(Point, self).__init__(
             f'<a-sphere position="{x} {y} {z}" color="{color}" radius="{radius}"></a-sphere>',
             color=color
@@ -77,23 +77,67 @@ class Arrow(Entity):
         x_range: (float, float),
         y_range: (float, float),
         z_range: (float, float),
-        color: str = DEFAULT_COLOR
+        color: str = DEFAULT_COLOR,
+        arrow_degrees: float = 30,
+        arrow_fraction: float = 0.01
     ):
+        # TODO: Fix 3D arrow
+        if arrow_fraction <= 0.:
+            raise PositiveException(f"arrow_fraction can not be less than or equal to zero. Got {arrow_fraction}.")
         x0, x1 = x_range
         y0, y1 = y_range
         z0, z1 = z_range
-        t = math.pi/4
-        l = math.sqrt((x1-x0)**2 + (y1-y0)**2 + (z1-z0)**2)
-        d = 1
-        x0_, x1_, y0_, y1_ = x0, x1, y0, y1
-        x2 = x1_ - ((x1_ - x0_)*math.cos(t) - (y1_ - y0_)*math.sin(t)) * d / l
-        y2 = y1_ - ((y1_ - y0_)*math.cos(t) + (x1_ - x0_)*math.sin(t)) * d / l
-        x3 = x1_ - ((x1_ - x0_)*math.cos(-t) - (y1_ - y0_)*math.sin(-t)) * d / l
-        y3 = y1_ - ((y1_ - y0_)*math.cos(-t) + (x1_ - x0_)*math.sin(-t)) * d / l
+        t = math.radians(arrow_degrees)
+        x0_, x1_, y0_, y1_, z0_, z1_ = x0, x1, y0, y1, z0, z1
+        x2 = x1_ - ((x1_ - x0_)*math.cos(t) - (y1_ - y0_)*math.sin(t) + (z1_ - z0_)*math.sin(t)) * arrow_fraction
+        y2 = y1_ - ((y1_ - y0_)*math.cos(t) + (x1_ - x0_)*math.sin(t) + (z1_ - z0_)*math.sin(t)) * arrow_fraction
+        x3 = x1_ - ((x1_ - x0_)*math.cos(-t) - (y1_ - y0_)*math.sin(-t) + (z1_ - z0_)*math.sin(-t)) * arrow_fraction
+        y3 = y1_ - ((y1_ - y0_)*math.cos(-t) + (x1_ - x0_)*math.sin(-t) + (z1_ - z0_)*math.sin(-t)) * arrow_fraction
         super(Arrow, self).__init__(
             f'<a-entity line="start: {x0}, {y0}, {z0}; end: {x1}, {y1}, {z1}; color: {color}"></a-entity>'
             f'<a-entity line="start: {x1}, {y1}, {z1}; end: {x2}, {y2}, {z1}; color: {color}"></a-entity>'
             f'<a-entity line="start: {x1}, {y1}, {z1}; end: {x3}, {y3}, {z1}; color: {color}"></a-entity>',
+            color=color
+        )
+
+
+class Poly2d(Entity):
+    """
+    TODO: This will be a polygon with a certain height used in topological charts.
+    Example: https://blueshift.io/election-2016-county-map.html
+    """
+    def __init__(
+        self,
+        poly: List[Tuple[float, float]],
+        height: float
+    ):
+        raise NotImplementedError()
+
+
+class Box(Entity):
+    """
+    This will be a bar of a certain height used in bar charts.
+    """
+    def __init__(
+        self,
+        position: Tuple[float, float, float],
+        depth: float,
+        width: float,
+        height: float,
+        color: str
+    ):
+        if depth <= 0.:
+            raise PositiveException(f"depth can not be less than or equal to zero. Got {depth}.")
+        if width <= 0.:
+            raise PositiveException(f"width can not be less than or equal to zero. Got {width}.")
+        if height == 0.:
+            raise NonZeroException(f"height can not be equal to zero. Got {height}.")
+        super(Box, self).__init__(
+            f'<a-box position="{position[0]} {position[1]} {position[2]}" '
+            f'       height="{height}" '
+            f'       width="{width}" '
+            f'       depth="{depth}" '
+            f'       color="{color}"></a-box>',
             color=color
         )
 
